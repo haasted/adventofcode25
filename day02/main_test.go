@@ -23,6 +23,9 @@ func Test1(t *testing.T) {
 	IDs = processRange("11-22")
 	assertEqual(IDs, "11", "22")
 
+	IDs = processRange("95-115")
+	assertEqual(IDs, "99")
+
 	IDs = processRange("1188511880-1188511890")
 	assertEqual(IDs, "1188511885")
 
@@ -31,6 +34,57 @@ func Test1(t *testing.T) {
 
 	IDs = processRange("1698522-1698528")
 	assertEqual(IDs)
+}
+
+func Test2(t *testing.T) {
+	var IDs []string
+
+	IDs = processRange2("11-22")
+	assertEqual(IDs, "11", "22")
+
+	IDs = processRange2("173-267")
+	assertEqual(IDs, "222")
+
+	IDs = processRange2("1188511880-1188511890")
+	assertEqual(IDs, "1188511885")
+
+	IDs = processRange2("38593856-38593862")
+	assertEqual(IDs, "38593859")
+
+	IDs = processRange2("1698522-1698528")
+	assertEqual(IDs)
+
+	IDs = processRange2("95-115")
+	assertEqual(IDs, "99", "111")
+
+	IDs = processRange2("998-1012")
+	assertEqual(IDs, "999", "1010")
+
+	IDs = processRange2("565653-565659")
+	assertEqual(IDs, "565656")
+
+	IDs = processRange2("1698522-1698528")
+	assertEqual(IDs)
+
+	IDs = processRange2("824824821-824824827")
+	assertEqual(IDs, "824824824")
+
+	IDs = processRange2("2121212118-2121212124")
+	assertEqual(IDs, "2121212121")
+
+	IDs = processRange2("2-20")
+	assertEqual(IDs, "11")
+}
+
+func Test3(t *testing.T) {
+	assertInvalid("123123123")
+}
+
+func assertInvalid(ID string) {
+	if !isInvalid(ID) {
+		println("expected to be invalid", ID)
+		panic("")
+	}
 }
 
 func assertEqual(IDs []string, expected ...string) {
