@@ -5,8 +5,16 @@ import (
 	"os"
 )
 
+type cellState int
+
+const (
+	empty cellState = iota
+	containsRoll
+	rollMarkedForRemoval
+)
+
 type board struct {
-	layout [][]bool
+	layout [][]cellState
 }
 
 func (b *board) isRoll(x, y int) bool {
@@ -22,7 +30,12 @@ func (b *board) isRoll(x, y int) bool {
 		return false
 	}
 
-	return b.layout[y][x]
+	switch b.layout[y][x] {
+	case containsRoll, rollMarkedForRemoval:
+		return true
+	default:
+		return false
+	}
 }
 
 func (b *board) isAccessible(x, y int) bool {
@@ -41,10 +54,35 @@ func (b *board) isAccessible(x, y int) bool {
 	return count < 4
 }
 
+func (b *board) markAllAccessible() (count int) {
+	for y := range b.layout {
+		for x := range b.layout[y] {
+			if b.isRoll(x, y) && b.isAccessible(x, y) {
+				count++
+				b.layout[y][x] = rollMarkedForRemoval
+			}
+		}
+	}
+
+	return
+}
+
+func (b *board) removeAllMarked() {
+	for y := range b.layout {
+		for x := range b.layout[y] {
+			if b.layout[y][x] == rollMarkedForRemoval {
+				b.layout[y][x] = empty
+			}
+		}
+	}
+}
+
 func (b *board) addRow(row string) {
-	r := make([]bool, len(row))
+	r := make([]cellState, len(row))
 	for i, c := range row {
-		r[i] = c == '@'
+		if c == '@' {
+			r[i] = containsRoll
+		}
 	}
 
 	b.layout = append(b.layout, r)
@@ -52,16 +90,19 @@ func (b *board) addRow(row string) {
 
 func main() {
 	b := loadInput()
-	count := 0
-	for y := range b.layout {
-		for x := range b.layout[y] {
-			if b.isRoll(x, y) && b.isAccessible(x, y) {
-				count++
-			}
-		}
+	count := b.markAllAccessible()
+
+	println("Accessible rolls: ", count)
+
+	b.removeAllMarked()
+	marked := count
+	for marked > 0 {
+		marked = b.markAllAccessible()
+		b.removeAllMarked()
+		count += marked
 	}
 
-	println("Accessible rows: ", count)
+	println("Total removed", count)
 }
 
 func loadInput() (b board) {
