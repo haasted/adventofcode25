@@ -3,13 +3,14 @@ package main
 import (
 	"bufio"
 	"os"
+	"strconv"
 	"strings"
 )
 
 type bank []rune
 
 func (b bank) findLargest(startIdx, endIdx int) (idx int, value rune) {
-	for i := startIdx; i < endIdx; i++ {
+	for i := startIdx; i <= endIdx; i++ {
 		if b[i] > value {
 			value, idx = b[i], i
 		}
@@ -18,22 +19,45 @@ func (b bank) findLargest(startIdx, endIdx int) (idx int, value rune) {
 	return
 }
 
-func (b bank) findMaxJoltage() int {
-	idx, d1 := b.findLargest(0, len(b)-1)
-	_, d2 := b.findLargest(idx+1, len(b))
+func (b bank) findMaxJoltage(digits int) int {
+	var (
+		result = make([]rune, digits)
+		idx    = -1
+	)
 
-	return int(d1*10) + int(d2)
+	for digit := range digits {
+		idx, result[digit] = b.findLargest(idx+1, len(b)-(digits-digit))
+	}
+
+	var bldr strings.Builder
+	for _, r := range result {
+		bldr.WriteRune(r + '0')
+	}
+
+	res, err := strconv.Atoi(bldr.String())
+	if err != nil {
+		panic(err)
+	}
+	return res
 }
 
 func main() {
 	var sum int
 	joltages := loadInput()
 	for _, j := range joltages {
-		joltage := j.findMaxJoltage()
+		joltage := j.findMaxJoltage(2)
 		sum += joltage
 	}
 
-	println("Totalt joltage", sum)
+	println("Part1 total joltage", sum)
+
+	sum = 0
+	for _, j := range joltages {
+		joltage := j.findMaxJoltage(12)
+		sum += joltage
+	}
+
+	println("Part2 total joltage", sum)
 }
 
 func loadInput() (inputs []bank) {
