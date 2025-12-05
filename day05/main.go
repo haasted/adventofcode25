@@ -14,12 +14,6 @@ type Range struct {
 }
 
 func (r Range) isInRange(val int) bool {
-	if val == 138028264431749 {
-		if r.start <= val && val <= r.end {
-			println("in range", r.start, r.end)
-		}
-	}
-
 	return r.start <= val && val <= r.end
 }
 
