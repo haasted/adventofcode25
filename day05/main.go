@@ -42,11 +42,9 @@ func (is *inventorySystem) sortAndMergeRanges() {
 
 	merged := []Range{is.ranges[0]} // Ignore empty ranges.
 	for _, r := range is.ranges {
-		if merged[len(merged)-1].end >= r.start {
-			if merged[len(merged)-1].end < r.end {
-				merged[len(merged)-1].end = r.end
-			}
-
+		highest := &merged[len(merged)-1]
+		if highest.end >= r.start {
+			highest.end = max(r.end, highest.end)
 			continue
 		}
 
