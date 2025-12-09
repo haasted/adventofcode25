@@ -2,19 +2,47 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
 )
 
-var wsSplitter = regexp.MustCompile(`\s+`)
-
 type calculation struct {
 	operator string
-	operands []int
+	operands []string
+}
+
+// celaphopodize the calculation
+func (c *calculation) c8dize() {
+	input := c.operands // Clone?
+
+	maxLength := 0
+	for _, i := range input {
+		maxLength = max(len(i), maxLength)
+	}
+
+	for idx := range len(input) {
+		input[idx] = fmt.Sprintf("%*s", maxLength, input[idx])
+	}
+
+	results := make([]strings.Builder, maxLength)
+	for idx := maxLength - 1; idx >= 0; idx-- {
+		for _, s := range input {
+			r := rune(s[idx])
+			if unicode.IsDigit(r) {
+				results[idx].WriteRune(r)
+			}
+		}
+	}
+
+	c.operands = nil
+
+	for _, r := range results {
+		c.operands = append(c.operands, r.String())
+	}
 }
 
 func (c calculation) run() (res int) {
@@ -22,11 +50,13 @@ func (c calculation) run() (res int) {
 	case "*":
 		res = 1
 		for _, val := range c.operands {
-			res *= val
+			i, _ := strconv.Atoi(val)
+			res *= i
 		}
 	case "+":
 		for _, val := range c.operands {
-			res += val
+			i, _ := strconv.Atoi(val)
+			res += i
 		}
 	default:
 		println("Unknown operator", c.operator)
@@ -45,6 +75,17 @@ func main() {
 	}
 
 	println("Total sum of all calculations", sum)
+	if sum != 5346286649122 {
+		println(" !! WARN !! - Currently a wrong result!")
+	}
+
+	sum = 0
+	for _, c := range calcs {
+		c.c8dize()
+		sum += c.run()
+	}
+
+	println("Total sum of all celaphopod calculations", sum)
 
 }
 
@@ -60,7 +101,7 @@ func loadInput(reader io.Reader) (calcs []calculation) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		line = strings.TrimSpace(line)
-		cols := wsSplitter.Split(line, -1)
+		cols := strings.Fields(line)
 
 		if len(calcs) < len(cols) {
 			calcs = make([]calculation, len(cols))
@@ -68,11 +109,7 @@ func loadInput(reader io.Reader) (calcs []calculation) {
 
 		if unicode.IsDigit(rune(line[0])) {
 			for idx, val := range cols {
-				i, err := strconv.Atoi(val)
-				if err != nil {
-					panic(err)
-				}
-				calcs[idx].operands = append(calcs[idx].operands, i)
+				calcs[idx].operands = append(calcs[idx].operands, val)
 			}
 		} else {
 			for idx, op := range cols {
