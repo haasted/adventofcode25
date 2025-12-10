@@ -1,6 +1,7 @@
 package main
 
 import (
+	"advent07/matrix"
 	"advent07/textbuffer"
 	"fmt"
 	"math/big"
@@ -25,6 +26,14 @@ var testInput = `.......S.......
 ...............
 `
 
+func TestLogic(t *testing.T) {
+	tb := textbuffer.New([]byte(testInput))
+	splitCount, timelineCount := countSplits(tb)
+	println(splitCount, timelineCount)
+	assert(splitCount == 21)
+	assert(timelineCount == 40)
+}
+
 func TestBig(t *testing.T) {
 	bi := big.NewInt(0)
 	bi.SetBit(bi, 5, 1)
@@ -37,8 +46,6 @@ func TestBig(t *testing.T) {
 }
 
 func Test(t *testing.T) {
-	// file, _ := os.Open("./input")
-	// buf, _ := io.ReadAll(file)
 	buf := []byte(testInput)
 
 	tb := textbuffer.New(buf)
@@ -69,4 +76,23 @@ func assert(in bool) {
 	if !in {
 		panic("assertion failed")
 	}
+}
+
+func TestMatrix(t *testing.T) {
+	m := matrix.Matrix{}
+
+	m.Inc(5, 9, 1)
+	m.Inc(1, 1, 2)
+	println(m.String())
+	assert(m.Get(1, 1) == 2)
+	assert(m.Get(5, 9) == 1)
+
+	m.Inc(15, 15, 1)
+	for range 3 {
+		m.Inc(2, 2, 4)
+	}
+
+	assert(m.Get(2, 2) == 12)
+
+	println(m.String())
 }

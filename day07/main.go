@@ -1,8 +1,8 @@
 package main
 
 import (
+	"advent07/matrix"
 	"advent07/textbuffer"
-	"fmt"
 	"io"
 	"math/big"
 	"os"
@@ -11,37 +11,52 @@ import (
 func main() {
 	buf := getInput()
 	tb := textbuffer.New(buf)
-	columnCount := len(tb.Line(0))
 
+	splitCount, timelineCount := countSplits(tb)
+
+	println("Split count", splitCount)
+	if splitCount != 1539 {
+		println("WARN! Error in split calculation somewhere")
+	}
+
+	println("Timeline count", timelineCount)
+	if timelineCount != 6479180385864 {
+		println("WARN! Error in timelines calculation somewhere")
+	}
+}
+
+func countSplits(tb *textbuffer.TextBuffer) (splitCount, timelineCount int) {
 	startIdx := tb.IndexOf(0, 'S')
+	m := matrix.Matrix{}
 
-	rays := big.NewInt(0)
-	rays.SetBit(rays, startIdx, 1)
+	m.Inc(startIdx, 0, 1) // Set source
 
-	splitCount := 0
 	for lineidx := range tb.LineCount() - 1 {
-		fmt.Printf("%0*b - %d\n", columnCount, rays, bitCount(rays))
-		nextRays := big.NewInt(0)
-
-		for bit := range rays.BitLen() {
-			if rays.Bit(bit) == 0 {
+		for x := range m.RowLen(lineidx) {
+			val := m.Get(x, lineidx)
+			if val == 0 {
 				continue
 			}
 
-			if tb.Get(bit, lineidx+1) == '^' {
+			nextLine := 1 + lineidx // readability
+			if tb.Get(x, nextLine) == '^' {
 				splitCount++
-				nextRays.SetBit(nextRays, bit-1, 1)
-				nextRays.SetBit(nextRays, bit+1, 1)
-			} else {
-				nextRays.SetBit(nextRays, bit, 1)
 
+				m.Inc(x-1, nextLine, val)
+				m.Inc(x+1, nextLine, val)
+			} else {
+				m.Inc(x, nextLine, val)
 			}
 		}
-
-		rays = nextRays
 	}
 
-	println("Split count", splitCount)
+	println(m.String())
+	sum := 0
+	m.IterLastRow(func(val int) {
+		sum += val
+	})
+
+	return splitCount, sum
 }
 
 func bitCount(bi *big.Int) (count uint) {
